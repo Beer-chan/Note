@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Note.MainPage">
+
+    <Grid ColumnDefinitions="400,700" ColumnSpacing="15" 
+          Padding="20,10" VerticalOptions="Fill">
+
+        <!-- Левая панель -->
+        <VerticalStackLayout Grid.Column="0" Spacing="15">
+
+            <!-- Поле поиска -->
+            <Frame CornerRadius="10"
+                   BackgroundColor="#D3D3D3"
+                   Padding="10,5"
+                   HasShadow="False">
+                <Entry x:Name="SearchEntry"
+                       Placeholder="Поиск" 
+                       BackgroundColor="Transparent"
+                       TextColor="Black"
+                       TextChanged="OnSearchTextChanged"
+                       PlaceholderColor="Black"/>
+                       
+            </Frame>
+
+            <!-- Список заметок -->
+            <Frame CornerRadius="10"
+                   BackgroundColor="#D3D3D3"
+                   VerticalOptions="FillAndExpand"
+                   HasShadow="False">
+                <ScrollView>
+                    <VerticalStackLayout x:Name="NotesStackLayout"
+                                         Spacing="10"
+                                         Padding="10"/>
+                </ScrollView>
+            </Frame>
+        </VerticalStackLayout>
+    
+        <!-- Основная область -->
+        <Grid
+              Grid.Column="1"
+              RowDefinitions="Auto,Auto,*" 
+              RowSpacing="15"
+              BackgroundColor="Gray"
+              Padding="10"
+            Margin="0,0,0,0"
+              >
+
+            <!-- Заголовок -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                <!-- Поле названия -->
+                <Frame CornerRadius="20"
+                       BackgroundColor="#696969"
+                       Padding="20,10"
+                       HorizontalOptions="Start"
+                       WidthRequest="300"
+                       HasShadow="False">
+                    <Entry x:Name="TitleEntry"
+                           Placeholder="Название..." 
+                           BackgroundColor="Transparent"
+                           TextColor="White"
+                           PlaceholderColor="#B0B0B0"/>
+                </Frame>
+            </Grid>
+
+            <!-- Текстовая область -->
+            <Grid Grid.Row="1" 
+                  ColumnDefinitions="*,Auto" 
+                  ColumnSpacing="15"
+                  VerticalOptions="FillAndExpand">
+
+                <!-- Текстовое поле -->
+                <Frame CornerRadius="15"
+                       BackgroundColor="#C0C0C0"
+                       Padding="15"
+                       HasShadow="False">
+                    <Editor x:Name="TextEditor"
+                            Placeholder="Текст..." 
+                            BackgroundColor="Transparent"
+                            TextColor="Black"
+                            PlaceholderColor="#4A4A4A"
+                            AutoSize="TextChanges"
+                            VerticalOptions="FillAndExpand"/>
+                </Frame>
+
+                <!-- Правая панель с кнопками -->
+                <VerticalStackLayout Grid.Column="1" 
+                                     Spacing="8"
+                                     VerticalOptions="Start">
+
+                    <!-- Кнопка Заметка -->
+                    <Button x:Name="BtnNote"
+                            Text="Заметка"
+                            BackgroundColor="#D3D3D3"
+                            TextColor="Black"
+                            FontSize="14"
+                            CornerRadius="15"
+                            Padding="15,10"
+                            WidthRequest="140"
+                            Clicked="OnNoteTypeClicked"
+                            CommandParameter="Заметка"/>
+
+                    <!-- Кнопка Напоминание -->
+                    <Button x:Name="BtnReminder"
+                            Text="Напоминание"
+                            BackgroundColor="#E8E8E8"
+                            TextColor="Black"
+                            FontSize="14"
+                            CornerRadius="15"
+                            Padding="15,10"
+                            WidthRequest="140"
+                            Clicked="OnNoteTypeClicked"
+                            CommandParameter="Напоминание"/>
+
+                    <!-- Кнопка День рождения -->
+                    <Button x:Name="BtnBirthday"
+                            Text="Праздники"
+                            BackgroundColor="#D3D3D3"
+                            TextColor="Black"
+                            FontSize="14"
+                            CornerRadius="15"
+                            Padding="15,10"
+                            WidthRequest="140"
+                            Clicked="OnNoteTypeClicked"
+                            CommandParameter="Праздники"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Grid>
+    </Grid>
+
+</ContentPage>
