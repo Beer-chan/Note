@@ -59,14 +59,10 @@ public partial class MainPage : ContentPage
 
         TitleEntry.Text = "";
         TextEditor.Text = "";
-
-        await DisplayAlert("Успешно", $"Заметка \"{title}\" добавлена как \"{type}\"", "OK");
     }
 
     private void UpdateNotesDisplay()
     {
-        // ❌ БЫЛО: NotesStackLayout.Children(); — это ошибка!
-        // ✅ ПРАВИЛЬНО очистить коллекцию Children
         NotesStackLayout.Children.Clear();
 
         if (displayedNotes.Count == 0)
@@ -91,14 +87,16 @@ public partial class MainPage : ContentPage
 
     private View CreateNoteView(NoteItem note)
     {
-        string badgeHex = note.Type switch
-        {
-            "Заметка" => "#4CAF50",
-            "Напоминание" => "#FF9800",
-            "Праздники" => "#E91E63",
-            _ => "#9E9E9E"
-        };
+        // Определяем цвет бейджа
+        string badgeHex;
+        if (note.Type == "Заметка")
+            badgeHex = "#4CAF50";
+        else if (note.Type == "Напоминание")
+            badgeHex = "#FF9800";
+        else
+            badgeHex = "#9E9E9E";
 
+        // Бейдж типа
         var typeBadge = new Frame
         {
             BackgroundColor = Color.FromArgb(badgeHex),
@@ -115,13 +113,13 @@ public partial class MainPage : ContentPage
             FontAttributes = FontAttributes.Bold
         };
 
-        // ✅ ИСПРАВЛЕНО: TextColor.Black → Colors.Black
+        // Заголовок
         var titleLabel = new Label
         {
             Text = note.Title,
             FontSize = 14,
             FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.Black, // ← было: TextColor.Black → ошибка CS0103
+            TextColor = Colors.Black,
             VerticalOptions = LayoutOptions.Center
         };
 
@@ -131,6 +129,7 @@ public partial class MainPage : ContentPage
             Spacing = 10
         };
 
+        // Текст заметки
         var textLabel = new Label
         {
             Text = note.Text,
@@ -139,6 +138,7 @@ public partial class MainPage : ContentPage
             LineBreakMode = LineBreakMode.WordWrap
         };
 
+        // Дата
         var dateLabel = new Label
         {
             Text = note.Date.ToString("dd.MM.yyyy HH:mm"),
@@ -146,23 +146,48 @@ public partial class MainPage : ContentPage
             TextColor = Color.FromArgb("#757575"),
             HorizontalOptions = LayoutOptions.End
         };
+
+        // Кнопки: создаём отдельно
+        var editButton = new Button
+        {
+            Text = "✏️ Редакт.",
+            BackgroundColor = Color.FromArgb("#2196F3"),
+            TextColor = Colors.White,
+            FontSize = 11,
+            Margin = new Thickness(0, 5, 5, 0),
+            Padding = new Thickness(8, 4)
+        };
+
         var deleteButton = new Button
         {
             Text = "✕ Удалить",
             BackgroundColor = Color.FromArgb("#F44336"),
             TextColor = Colors.White,
             FontSize = 11,
-            HorizontalOptions = LayoutOptions.End,
-            Margin = new Thickness(0, 5, 0, 0)
+            Margin = new Thickness(0, 5, 0, 0),
+            Padding = new Thickness(8, 4)
         };
+
+        // Привязываем события — ТОЛЬКО ПОСЛЕ создания кнопок
+        editButton.Clicked += (_, _) => EditNote(note);
         deleteButton.Clicked += (_, _) => DeleteNote(note);
 
-        var contentStack = new VerticalStackLayout
+        // Горизонтальный контейнер для кнопок
+        var buttonContainer = new HorizontalStackLayout
         {
-            Children = { header, textLabel, dateLabel, deleteButton },
+            Children = { editButton, deleteButton },
+            HorizontalOptions = LayoutOptions.End,
             Spacing = 5
         };
 
+        // Общий стек содержимого
+        var contentStack = new VerticalStackLayout
+        {
+            Children = { header, textLabel, dateLabel, buttonContainer },
+            Spacing = 5
+        };
+
+        // Обёртка с закруглёнными углами
         var frame = new Frame
         {
             CornerRadius = 8,
@@ -175,6 +200,15 @@ public partial class MainPage : ContentPage
         };
 
         return frame;
+    }
+    private void EditNote(NoteItem note)
+    {
+        TitleEntry.Text = note.Title;
+        TextEditor.Text = note.Text;
+
+        allNotes.Remove(note);
+        displayedNotes = new List<NoteItem>(allNotes);
+        UpdateNotesDisplay();
     }
 
     private void DeleteNote(NoteItem note)
