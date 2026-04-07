@@ -9,8 +9,8 @@
     >
 
     <ShellContent
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" 
+        ContentTemplate="{DataTemplate local:FirstPage}"
+        Route="FirstPage" 
         />
         
 </Shell>

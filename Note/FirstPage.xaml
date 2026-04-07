@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Note.FirstPage"
+             >
+    <ScrollView>
+        <Grid ColumnDefinitions="*, Auto"
+          RowDefinitions="Auto, Auto, Auto"
+          Padding="20"
+          VerticalOptions="Center">
+
+            <!-- Email -->
+            <Entry Grid.Row="0" Grid.Column="0"
+               x:Name="EmailEntry"
+               Placeholder="Email"
+               Keyboard="Email"
+               HorizontalOptions="Fill"
+               Margin="0,0,10,10"/>
+
+            <!-- Кнопка "Вход" -->
+            <Button Grid.Row="0" Grid.Column="1"
+                Text="Вход"
+                BackgroundColor="#007ACC"
+                TextColor="White"
+                Clicked="Login_Clicked"
+                HorizontalOptions="Fill"
+                Margin="0,0,0,10"/>
+
+            <!-- Password -->
+            <Entry Grid.Row="1" Grid.Column="0"
+               x:Name="PasswordEntry"
+               Placeholder="password"
+               IsPassword="True"
+               HorizontalOptions="Fill"
+               Margin="0,0,10,0"/>
+
+            <!-- Кнопка "Регистрация" -->
+            <Button Grid.Row="1" Grid.Column="1"
+                Text="Регистрация"
+                BackgroundColor="#4CAF50"
+                TextColor="White"
+                
+                HorizontalOptions="Fill"/>
+
+        </Grid>
+    </ScrollView>
+</ContentPage>
