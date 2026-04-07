@@ -7,11 +7,19 @@ namespace Note
         public App()
         {
             InitializeComponent();
+            var navPage = new NavigationPage(new FirstPage());
+            MainPage = navPage;
         }
 
-        protected override Window CreateWindow(IActivationState? activationState)
+        protected override Window CreateWindow(IActivationState activationState)
         {
-            return new Window(new AppShell());
+            var window = base.CreateWindow(activationState);
+
+            window.Width = 1175;
+            window.Height = 740;
+
+            return window;
         }
+
     }
 }

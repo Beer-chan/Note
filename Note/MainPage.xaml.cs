@@ -12,6 +12,11 @@ public partial class MainPage : ContentPage
     private readonly List<NoteItem> allNotes = new();
     private List<NoteItem> displayedNotes = new();
 
+
+    private async void Login_Clicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync(); // возврат на LoginPage
+    }
     public MainPage()
     {
         InitializeComponent();

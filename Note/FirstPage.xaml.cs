@@ -7,8 +7,8 @@ public partial class FirstPage : ContentPage
 		InitializeComponent();
 	}
 
-    private void Login_Clicked(object sender, EventArgs e)
+    private async void Login_Clicked(object sender, EventArgs e)
     {
-
+        await Navigation.PushAsync(new MainPage());
     }
 }
