@@ -2,33 +2,28 @@ using Note.Services;
 
 namespace Note;
 
-public partial class FirstPage : ContentPage
+public partial class RegisterPage : ContentPage
 {
     private readonly IAuthService _authService;
 
-    public FirstPage()
+    public RegisterPage()
     {
         InitializeComponent();
         _authService = new AuthService();
     }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-
-        // Проверяем, авторизован ли уже пользователь
-        if (_authService.IsAuthenticated())
-        {
-            await GoToMainPage();
-        }
-    }
-
-    private async void Login_Clicked(object sender, EventArgs e)
+    private async void Register_Clicked(object sender, EventArgs e)
     {
         // Валидация
         if (string.IsNullOrWhiteSpace(EmailEntry.Text))
         {
             ShowError("Введите email");
+            return;
+        }
+
+        if (!EmailEntry.Text.Contains("@") || !EmailEntry.Text.Contains("."))
+        {
+            ShowError("Введите корректный email");
             return;
         }
 
@@ -38,16 +33,30 @@ public partial class FirstPage : ContentPage
             return;
         }
 
+        if (PasswordEntry.Text.Length < 8)
+        {
+            ShowError("Пароль должен содержать минимум 8 символов");
+            return;
+        }
+
+        if (PasswordEntry.Text != ConfirmPasswordEntry.Text)
+        {
+            ShowError("Пароли не совпадают");
+            return;
+        }
+
         // Блокируем кнопку и показываем загрузку
         SetLoading(true);
 
         try
         {
-            var response = await _authService.LoginAsync(
+            var response = await _authService.RegisterAsync(
                 EmailEntry.Text.Trim(),
-                PasswordEntry.Text
+                PasswordEntry.Text,
+                ConfirmPasswordEntry.Text
             );
 
+            await DisplayAlert("Успех", "Регистрация выполнена успешно!", "OK");
             await GoToMainPage();
         }
         catch (Exception ex)
@@ -60,9 +69,9 @@ public partial class FirstPage : ContentPage
         }
     }
 
-    private async void Register_Clicked(object sender, EventArgs e)
+    private async void BackToLogin_Clicked(object sender, EventArgs e)
     {
-        await Navigation.PushAsync(new RegisterPage());
+        await Navigation.PopAsync();
     }
 
     private void ShowError(string message)
@@ -73,7 +82,7 @@ public partial class FirstPage : ContentPage
 
     private void SetLoading(bool isLoading)
     {
-        LoginButton.IsEnabled = !isLoading;
+        RegisterButton.IsEnabled = !isLoading;
         LoadingIndicator.IsRunning = isLoading;
         LoadingIndicator.IsVisible = isLoading;
 

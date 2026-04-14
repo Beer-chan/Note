@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using Note.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +12,38 @@ public partial class MainPage : ContentPage
 {
     private readonly List<NoteItem> allNotes = new();
     private List<NoteItem> displayedNotes = new();
+    private readonly IAuthService _authService;
 
-
-    private async void Login_Clicked(object sender, EventArgs e)
-    {
-        await Navigation.PopAsync(); // возврат на LoginPage
-    }
     public MainPage()
     {
         InitializeComponent();
+        _authService = new AuthService();
+        LoadUserInfo();
         UpdateNotesDisplay();
+    }
+
+    private async void LoadUserInfo()
+    {
+        try
+        {
+            var user = await _authService.GetCurrentUserAsync();
+            UserEmailLabel.Text = user.Email;
+        }
+        catch
+        {
+            UserEmailLabel.Text = "Не авторизован";
+        }
+    }
+
+    private async void Logout_Clicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Выход", "Вы уверены, что хотите выйти?", "Да", "Нет");
+
+        if (confirm)
+        {
+            await _authService.LogoutAsync();
+            Application.Current.MainPage = new NavigationPage(new FirstPage());
+        }
     }
 
     private async void OnNoteTypeClicked(object sender, EventArgs e)
@@ -39,14 +62,14 @@ public partial class MainPage : ContentPage
         if (string.IsNullOrEmpty(title))
         {
             await DisplayAlert("Ошибка", "Введите название заметки", "OK");
-            TitleEntry.Focus(); // ← Используем Focus(), а не FocusAsync()
+            TitleEntry.Focus();
             return;
         }
 
         if (string.IsNullOrEmpty(text))
         {
             await DisplayAlert("Ошибка", "Введите текст заметки", "OK");
-            TextEditor.Focus(); // ← Аналогично
+            TextEditor.Focus();
             return;
         }
 
@@ -92,33 +115,25 @@ public partial class MainPage : ContentPage
 
     private View CreateNoteView(NoteItem note)
     {
-        // Определяем цвет бейджа
-        string badgeHex;
-        if (note.Type == "Заметка")
-            badgeHex = "#4CAF50";
-        else if (note.Type == "Напоминание")
-            badgeHex = "#FF9800";
-        else
-            badgeHex = "#9E9E9E";
+        string badgeHex = note.Type == "Заметка" ? "#4CAF50" :
+                         note.Type == "Напоминание" ? "#FF9800" : "#9E9E9E";
 
-        // Бейдж типа
         var typeBadge = new Frame
         {
             BackgroundColor = Color.FromArgb(badgeHex),
             CornerRadius = 5,
             Padding = new Thickness(8, 3),
             HorizontalOptions = LayoutOptions.Start,
-            HasShadow = false
-        };
-        typeBadge.Content = new Label
-        {
-            Text = note.Type,
-            TextColor = Colors.White,
-            FontSize = 11,
-            FontAttributes = FontAttributes.Bold
+            HasShadow = false,
+            Content = new Label
+            {
+                Text = note.Type,
+                TextColor = Colors.White,
+                FontSize = 11,
+                FontAttributes = FontAttributes.Bold
+            }
         };
 
-        // Заголовок
         var titleLabel = new Label
         {
             Text = note.Title,
@@ -134,7 +149,6 @@ public partial class MainPage : ContentPage
             Spacing = 10
         };
 
-        // Текст заметки
         var textLabel = new Label
         {
             Text = note.Text,
@@ -143,7 +157,6 @@ public partial class MainPage : ContentPage
             LineBreakMode = LineBreakMode.WordWrap
         };
 
-        // Дата
         var dateLabel = new Label
         {
             Text = note.Date.ToString("dd.MM.yyyy HH:mm"),
@@ -152,7 +165,6 @@ public partial class MainPage : ContentPage
             HorizontalOptions = LayoutOptions.End
         };
 
-        // Кнопки: создаём отдельно
         var editButton = new Button
         {
             Text = "✏️ Редакт.",
@@ -162,6 +174,7 @@ public partial class MainPage : ContentPage
             Margin = new Thickness(0, 5, 5, 0),
             Padding = new Thickness(8, 4)
         };
+        editButton.Clicked += (_, _) => EditNote(note);
 
         var deleteButton = new Button
         {
@@ -172,12 +185,8 @@ public partial class MainPage : ContentPage
             Margin = new Thickness(0, 5, 0, 0),
             Padding = new Thickness(8, 4)
         };
-
-        // Привязываем события — ТОЛЬКО ПОСЛЕ создания кнопок
-        editButton.Clicked += (_, _) => EditNote(note);
         deleteButton.Clicked += (_, _) => DeleteNote(note);
 
-        // Горизонтальный контейнер для кнопок
         var buttonContainer = new HorizontalStackLayout
         {
             Children = { editButton, deleteButton },
@@ -185,15 +194,13 @@ public partial class MainPage : ContentPage
             Spacing = 5
         };
 
-        // Общий стек содержимого
         var contentStack = new VerticalStackLayout
         {
             Children = { header, textLabel, dateLabel, buttonContainer },
             Spacing = 5
         };
 
-        // Обёртка с закруглёнными углами
-        var frame = new Frame
+        return new Frame
         {
             CornerRadius = 8,
             BackgroundColor = Colors.White,
@@ -203,14 +210,12 @@ public partial class MainPage : ContentPage
             Content = contentStack,
             HasShadow = false
         };
-
-        return frame;
     }
+
     private void EditNote(NoteItem note)
     {
         TitleEntry.Text = note.Title;
         TextEditor.Text = note.Text;
-
         allNotes.Remove(note);
         displayedNotes = new List<NoteItem>(allNotes);
         UpdateNotesDisplay();

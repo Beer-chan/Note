@@ -1,17 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Note.MainPage">
+             x:Class="Note.MainPage"
+             Title="Главная">
 
     <Grid ColumnDefinitions="400,700" ColumnSpacing="15" 
           Padding="20,10" VerticalOptions="Fill"
           BackgroundColor="#E8E8E8">
 
         <!-- Левая панель -->
-        <Grid Grid.Column="0" RowDefinitions="Auto, *" RowSpacing="15" Padding="0,0,0,15">
+        <Grid Grid.Column="0" RowDefinitions="Auto, Auto, *" RowSpacing="15" Padding="0,0,0,15">
 
-            <!--ка -->
+            <!-- Информация о пользователе -->
             <Border Grid.Row="0"
+                    Stroke="#D3D3D3"
+                    BackgroundColor="#D3D3D3"
+                    StrokeShape="RoundRectangle 10"
+                    Padding="15,10">
+                <HorizontalStackLayout Spacing="10">
+                    <Label x:Name="UserEmailLabel" 
+                           Text="user@email.com"
+                           TextColor="Black"
+                           FontSize="14"
+                           VerticalOptions="Center"
+                           HorizontalOptions="StartAndExpand"/>
+                    <Button Text="Выйти"
+                            Clicked="Logout_Clicked"
+                            BackgroundColor="#F44336"
+                            TextColor="White"
+                            CornerRadius="8"
+                            Padding="15,5"
+                            FontSize="12"
+                            HorizontalOptions="End"/>
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Поиск -->
+            <Border Grid.Row="1"
                     Stroke="#D3D3D3"
                     BackgroundColor="#D3D3D3"
                     StrokeShape="RoundRectangle 10"
@@ -25,7 +50,7 @@
             </Border>
 
             <!-- Список заметок -->
-            <Border Grid.Row="1"
+            <Border Grid.Row="2"
                     Stroke="#D3D3D3"
                     BackgroundColor="#D3D3D3"
                     StrokeShape="RoundRectangle 10"

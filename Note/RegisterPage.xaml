@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Note.FirstPage"
-             Title="Вход">
+             x:Class="Note.RegisterPage"
+             Title="Регистрация">
 
     <ScrollView>
         <VerticalStackLayout Padding="30" Spacing="20" VerticalOptions="Center">
 
-            <Label Text="Note" 
-                   FontSize="36" 
+            <Label Text="Регистрация" 
+                   FontSize="32" 
                    FontAttributes="Bold" 
                    HorizontalOptions="Center"
                    Margin="0,0,0,30"/>
@@ -24,7 +24,15 @@
             <!-- Поле Пароль -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="PasswordEntry" 
-                       Placeholder="Пароль" 
+                       Placeholder="Пароль (мин. 8 символов)" 
+                       IsPassword="True"
+                       FontSize="16"/>
+            </Frame>
+
+            <!-- Поле Подтверждение пароля -->
+            <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
+                <Entry x:Name="ConfirmPasswordEntry" 
+                       Placeholder="Подтвердите пароль" 
                        IsPassword="True"
                        FontSize="16"/>
             </Frame>
@@ -35,11 +43,11 @@
                    FontSize="14"
                    IsVisible="False"/>
 
-            <!-- Кнопка Вход -->
-            <Button x:Name="LoginButton"
-                    Text="Войти"
-                    Clicked="Login_Clicked"
-                    BackgroundColor="#007ACC"
+            <!-- Кнопка Регистрация -->
+            <Button x:Name="RegisterButton"
+                    Text="Зарегистрироваться"
+                    Clicked="Register_Clicked"
+                    BackgroundColor="#4CAF50"
                     TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
@@ -50,23 +58,16 @@
             <ActivityIndicator x:Name="LoadingIndicator" 
                               IsRunning="False" 
                               IsVisible="False"
-                              Color="#007ACC"
+                              Color="#4CAF50"
                               HeightRequest="40"/>
 
-            <!-- Разделитель -->
-            <Label Text="или" 
-                   HorizontalOptions="Center" 
-                   TextColor="#666"
-                   Margin="0,20,0,0"/>
-
-            <!-- Кнопка Регистрация -->
-            <Button Text="Создать аккаунт"
-                    Clicked="Register_Clicked"
-                    BackgroundColor="#4CAF50"
-                    TextColor="White"
-                    CornerRadius="10"
-                    HeightRequest="50"
-                    FontSize="16"/>
+            <!-- Кнопка Назад -->
+            <Button Text="Уже есть аккаунт? Войти"
+                    Clicked="BackToLogin_Clicked"
+                    BackgroundColor="Transparent"
+                    TextColor="#007ACC"
+                    FontSize="16"
+                    Margin="0,20,0,0"/>
 
         </VerticalStackLayout>
     </ScrollView>
