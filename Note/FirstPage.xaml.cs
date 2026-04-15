@@ -4,20 +4,17 @@ namespace Note;
 
 public partial class FirstPage : ContentPage
 {
-    private readonly IAuthService _authService;
+    private readonly ApiService _api = new();
 
     public FirstPage()
     {
         InitializeComponent();
-        _authService = new AuthService();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
-        // Проверяем, авторизован ли уже пользователь
-        if (_authService.IsAuthenticated())
+        if (_api.IsAuthenticated())
         {
             await GoToMainPage();
         }
@@ -25,34 +22,24 @@ public partial class FirstPage : ContentPage
 
     private async void Login_Clicked(object sender, EventArgs e)
     {
-        // Валидация
-        if (string.IsNullOrWhiteSpace(EmailEntry.Text))
+        if (string.IsNullOrWhiteSpace(EmailEntry.Text) || string.IsNullOrWhiteSpace(PasswordEntry.Text))
         {
-            ShowError("Введите email");
+            ErrorLabel.Text = "Заполните все поля";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(PasswordEntry.Text))
-        {
-            ShowError("Введите пароль");
-            return;
-        }
-
-        // Блокируем кнопку и показываем загрузку
         SetLoading(true);
 
         try
         {
-            var response = await _authService.LoginAsync(
-                EmailEntry.Text.Trim(),
-                PasswordEntry.Text
-            );
-
+            await _api.LoginAsync(EmailEntry.Text.Trim(), PasswordEntry.Text);
             await GoToMainPage();
         }
         catch (Exception ex)
         {
-            ShowError(ex.Message);
+            ErrorLabel.Text = ex.Message;
+            ErrorLabel.IsVisible = true;
         }
         finally
         {
@@ -65,22 +52,12 @@ public partial class FirstPage : ContentPage
         await Navigation.PushAsync(new RegisterPage());
     }
 
-    private void ShowError(string message)
-    {
-        ErrorLabel.Text = message;
-        ErrorLabel.IsVisible = true;
-    }
-
     private void SetLoading(bool isLoading)
     {
         LoginButton.IsEnabled = !isLoading;
         LoadingIndicator.IsRunning = isLoading;
         LoadingIndicator.IsVisible = isLoading;
-
-        if (isLoading)
-        {
-            ErrorLabel.IsVisible = false;
-        }
+        if (isLoading) ErrorLabel.IsVisible = false;
     }
 
     private async Task GoToMainPage()

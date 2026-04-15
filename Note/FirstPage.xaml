@@ -13,29 +13,27 @@
                    HorizontalOptions="Center"
                    Margin="0,0,0,30"/>
 
-            <!-- Поле Email -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="EmailEntry" 
                        Placeholder="Email" 
                        Keyboard="Email"
-                       FontSize="16"/>
+                       FontSize="16"
+                       TextColor="Black"/>
             </Frame>
 
-            <!-- Поле Пароль -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="PasswordEntry" 
                        Placeholder="Пароль" 
                        IsPassword="True"
-                       FontSize="16"/>
+                       FontSize="16"
+                       TextColor="Black"/>
             </Frame>
 
-            <!-- Ошибка -->
             <Label x:Name="ErrorLabel" 
                    TextColor="Red" 
                    FontSize="14"
                    IsVisible="False"/>
 
-            <!-- Кнопка Вход -->
             <Button x:Name="LoginButton"
                     Text="Войти"
                     Clicked="Login_Clicked"
@@ -43,23 +41,19 @@
                     TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
-                    FontSize="18"
-                    Margin="0,10,0,0"/>
+                    FontSize="18"/>
 
-            <!-- Индикатор загрузки -->
             <ActivityIndicator x:Name="LoadingIndicator" 
                               IsRunning="False" 
                               IsVisible="False"
                               Color="#007ACC"
                               HeightRequest="40"/>
 
-            <!-- Разделитель -->
             <Label Text="или" 
                    HorizontalOptions="Center" 
                    TextColor="#666"
                    Margin="0,20,0,0"/>
 
-            <!-- Кнопка Регистрация -->
             <Button Text="Создать аккаунт"
                     Clicked="Register_Clicked"
                     BackgroundColor="#4CAF50"

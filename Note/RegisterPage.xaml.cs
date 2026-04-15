@@ -4,64 +4,62 @@ namespace Note;
 
 public partial class RegisterPage : ContentPage
 {
-    private readonly IAuthService _authService;
+    private readonly ApiService _api = new();
 
     public RegisterPage()
     {
         InitializeComponent();
-        _authService = new AuthService();
     }
 
     private async void Register_Clicked(object sender, EventArgs e)
     {
-        // Валидация
         if (string.IsNullOrWhiteSpace(EmailEntry.Text))
         {
-            ShowError("Введите email");
+            ErrorLabel.Text = "Введите email";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
         if (!EmailEntry.Text.Contains("@") || !EmailEntry.Text.Contains("."))
         {
-            ShowError("Введите корректный email");
+            ErrorLabel.Text = "Введите корректный email";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
         if (string.IsNullOrWhiteSpace(PasswordEntry.Text))
         {
-            ShowError("Введите пароль");
+            ErrorLabel.Text = "Введите пароль";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
         if (PasswordEntry.Text.Length < 8)
         {
-            ShowError("Пароль должен содержать минимум 8 символов");
+            ErrorLabel.Text = "Пароль должен содержать минимум 8 символов";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
         if (PasswordEntry.Text != ConfirmPasswordEntry.Text)
         {
-            ShowError("Пароли не совпадают");
+            ErrorLabel.Text = "Пароли не совпадают";
+            ErrorLabel.IsVisible = true;
             return;
         }
 
-        // Блокируем кнопку и показываем загрузку
         SetLoading(true);
 
         try
         {
-            var response = await _authService.RegisterAsync(
-                EmailEntry.Text.Trim(),
-                PasswordEntry.Text,
-                ConfirmPasswordEntry.Text
-            );
-
+            await _api.RegisterAsync(EmailEntry.Text.Trim(), PasswordEntry.Text, ConfirmPasswordEntry.Text);
             await DisplayAlert("Успех", "Регистрация выполнена успешно!", "OK");
             await GoToMainPage();
         }
         catch (Exception ex)
         {
-            ShowError(ex.Message);
+            ErrorLabel.Text = ex.Message;
+            ErrorLabel.IsVisible = true;
         }
         finally
         {
@@ -74,22 +72,12 @@ public partial class RegisterPage : ContentPage
         await Navigation.PopAsync();
     }
 
-    private void ShowError(string message)
-    {
-        ErrorLabel.Text = message;
-        ErrorLabel.IsVisible = true;
-    }
-
     private void SetLoading(bool isLoading)
     {
         RegisterButton.IsEnabled = !isLoading;
         LoadingIndicator.IsRunning = isLoading;
         LoadingIndicator.IsVisible = isLoading;
-
-        if (isLoading)
-        {
-            ErrorLabel.IsVisible = false;
-        }
+        if (isLoading) ErrorLabel.IsVisible = false;
     }
 
     private async Task GoToMainPage()

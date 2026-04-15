@@ -13,37 +13,35 @@
                    HorizontalOptions="Center"
                    Margin="0,0,0,30"/>
 
-            <!-- Поле Email -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="EmailEntry" 
                        Placeholder="Email" 
                        Keyboard="Email"
-                       FontSize="16"/>
+                       FontSize="16"
+                       TextColor="Black"/>
             </Frame>
 
-            <!-- Поле Пароль -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="PasswordEntry" 
                        Placeholder="Пароль (мин. 8 символов)" 
                        IsPassword="True"
-                       FontSize="16"/>
+                       FontSize="16"
+                       TextColor="Black"/>
             </Frame>
 
-            <!-- Поле Подтверждение пароля -->
             <Frame CornerRadius="10" Padding="15" BackgroundColor="White">
                 <Entry x:Name="ConfirmPasswordEntry" 
                        Placeholder="Подтвердите пароль" 
                        IsPassword="True"
-                       FontSize="16"/>
+                       FontSize="16"
+                       TextColor="Black"/>
             </Frame>
 
-            <!-- Ошибка -->
             <Label x:Name="ErrorLabel" 
                    TextColor="Red" 
                    FontSize="14"
                    IsVisible="False"/>
 
-            <!-- Кнопка Регистрация -->
             <Button x:Name="RegisterButton"
                     Text="Зарегистрироваться"
                     Clicked="Register_Clicked"
@@ -51,17 +49,14 @@
                     TextColor="White"
                     CornerRadius="10"
                     HeightRequest="50"
-                    FontSize="18"
-                    Margin="0,10,0,0"/>
+                    FontSize="18"/>
 
-            <!-- Индикатор загрузки -->
             <ActivityIndicator x:Name="LoadingIndicator" 
                               IsRunning="False" 
                               IsVisible="False"
                               Color="#4CAF50"
                               HeightRequest="40"/>
 
-            <!-- Кнопка Назад -->
             <Button Text="Уже есть аккаунт? Войти"
                     Clicked="BackToLogin_Clicked"
                     BackgroundColor="Transparent"

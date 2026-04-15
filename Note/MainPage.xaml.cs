@@ -1,32 +1,39 @@
 ﻿using Microsoft.Maui.Controls;
-using Microsoft.Maui.Graphics;
 using Note.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Note;
 
 public partial class MainPage : ContentPage
 {
-    private readonly List<NoteItem> allNotes = new();
-    private List<NoteItem> displayedNotes = new();
-    private readonly IAuthService _authService;
+    private readonly ApiService _api = new();
+    private List<NoteModel> allNotes = new();
+    private List<NoteModel> displayedNotes = new();
+    private NoteModel? _editingNote;
 
     public MainPage()
     {
         InitializeComponent();
-        _authService = new AuthService();
+        ReminderDatePicker.Date = DateTime.Now;
+        ReminderTimePicker.Time = DateTime.Now.TimeOfDay;
+        OnTypeChanged("Заметка");
         LoadUserInfo();
-        UpdateNotesDisplay();
+        LoadNotes();
+    }
+
+    private void OnTypeChanged(string type)
+    {
+        bool isReminder = type == "Напоминание";
+        ReminderDatePicker.IsEnabled = isReminder;
+        ReminderTimePicker.IsEnabled = isReminder;
+        BtnNote.BackgroundColor = type == "Заметка" ? Color.FromArgb("#C0C0C0") : Colors.Transparent;
+        BtnReminder.BackgroundColor = type == "Напоминание" ? Color.FromArgb("#C0C0C0") : Colors.Transparent;
     }
 
     private async void LoadUserInfo()
     {
         try
         {
-            var user = await _authService.GetCurrentUserAsync();
+            var user = await _api.GetCurrentUserAsync();
             UserEmailLabel.Text = user.Email;
         }
         catch
@@ -35,170 +42,44 @@ public partial class MainPage : ContentPage
         }
     }
 
-    private async void Logout_Clicked(object sender, EventArgs e)
+    private async void LoadNotes()
     {
-        bool confirm = await DisplayAlert("Выход", "Вы уверены, что хотите выйти?", "Да", "Нет");
-
-        if (confirm)
+        try
         {
-            await _authService.LogoutAsync();
-            Application.Current.MainPage = new NavigationPage(new FirstPage());
+            allNotes = await _api.GetNotesAsync();
+            displayedNotes = new List<NoteModel>(allNotes);
+            UpdateNotesDisplay();
         }
-    }
-
-    private async void OnNoteTypeClicked(object sender, EventArgs e)
-    {
-        if (sender is Button button && button.CommandParameter is string noteType)
+        catch (Exception ex)
         {
-            await AddNoteAsync(noteType);
+            NotesStackLayout.Children.Clear();
+            NotesStackLayout.Children.Add(new Label { Text = $"Ошибка: {ex.Message}", TextColor = Colors.Red });
         }
-    }
-
-    private async Task AddNoteAsync(string type)
-    {
-        var title = TitleEntry.Text?.Trim();
-        var text = TextEditor.Text?.Trim();
-
-        if (string.IsNullOrEmpty(title))
-        {
-            await DisplayAlert("Ошибка", "Введите название заметки", "OK");
-            TitleEntry.Focus();
-            return;
-        }
-
-        if (string.IsNullOrEmpty(text))
-        {
-            await DisplayAlert("Ошибка", "Введите текст заметки", "OK");
-            TextEditor.Focus();
-            return;
-        }
-
-        var note = new NoteItem
-        {
-            Title = title,
-            Text = text,
-            Type = type,
-            Date = DateTime.Now
-        };
-
-        allNotes.Add(note);
-        displayedNotes = new List<NoteItem>(allNotes);
-        UpdateNotesDisplay();
-
-        TitleEntry.Text = "";
-        TextEditor.Text = "";
     }
 
     private void UpdateNotesDisplay()
     {
         NotesStackLayout.Children.Clear();
-
         if (displayedNotes.Count == 0)
         {
-            var placeholder = new Label
-            {
-                Text = "Здесь будут ваши заметки..",
-                TextColor = Color.FromArgb("#4A4A4A"),
-                FontSize = 14,
-                VerticalOptions = LayoutOptions.Start,
-                Margin = new Thickness(5)
-            };
-            NotesStackLayout.Children.Add(placeholder);
+            NotesStackLayout.Children.Add(new Label { Text = "Нет заметок", TextColor = Colors.Gray });
             return;
         }
-
-        foreach (var note in displayedNotes)
-        {
+        foreach (var note in displayedNotes.OrderByDescending(n => n.CreatedAt))
             NotesStackLayout.Children.Add(CreateNoteView(note));
-        }
     }
 
-    private View CreateNoteView(NoteItem note)
+    private View CreateNoteView(NoteModel note)
     {
-        string badgeHex = note.Type == "Заметка" ? "#4CAF50" :
-                         note.Type == "Напоминание" ? "#FF9800" : "#9E9E9E";
+        var editBtn = new Button { Text = "✏️", BackgroundColor = Color.FromArgb("#2196F3"), TextColor = Colors.White, WidthRequest = 40 };
+        editBtn.Clicked += (_, _) => EditNote(note);
 
-        var typeBadge = new Frame
-        {
-            BackgroundColor = Color.FromArgb(badgeHex),
-            CornerRadius = 5,
-            Padding = new Thickness(8, 3),
-            HorizontalOptions = LayoutOptions.Start,
-            HasShadow = false,
-            Content = new Label
-            {
-                Text = note.Type,
-                TextColor = Colors.White,
-                FontSize = 11,
-                FontAttributes = FontAttributes.Bold
-            }
-        };
+        var delBtn = new Button { Text = "✕", BackgroundColor = Color.FromArgb("#F44336"), TextColor = Colors.White, WidthRequest = 40 };
+        delBtn.Clicked += async (_, _) => await DeleteNote(note);
 
-        var titleLabel = new Label
-        {
-            Text = note.Title,
-            FontSize = 14,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.Black,
-            VerticalOptions = LayoutOptions.Center
-        };
-
-        var header = new HorizontalStackLayout
-        {
-            Children = { typeBadge, titleLabel },
-            Spacing = 10
-        };
-
-        var textLabel = new Label
-        {
-            Text = note.Text,
-            FontSize = 12,
-            TextColor = Color.FromArgb("#4A4A4A"),
-            LineBreakMode = LineBreakMode.WordWrap
-        };
-
-        var dateLabel = new Label
-        {
-            Text = note.Date.ToString("dd.MM.yyyy HH:mm"),
-            FontSize = 10,
-            TextColor = Color.FromArgb("#757575"),
-            HorizontalOptions = LayoutOptions.End
-        };
-
-        var editButton = new Button
-        {
-            Text = "✏️ Редакт.",
-            BackgroundColor = Color.FromArgb("#2196F3"),
-            TextColor = Colors.White,
-            FontSize = 11,
-            Margin = new Thickness(0, 5, 5, 0),
-            Padding = new Thickness(8, 4)
-        };
-        editButton.Clicked += (_, _) => EditNote(note);
-
-        var deleteButton = new Button
-        {
-            Text = "✕ Удалить",
-            BackgroundColor = Color.FromArgb("#F44336"),
-            TextColor = Colors.White,
-            FontSize = 11,
-            Margin = new Thickness(0, 5, 0, 0),
-            Padding = new Thickness(8, 4)
-        };
-        deleteButton.Clicked += (_, _) => DeleteNote(note);
-
-        var buttonContainer = new HorizontalStackLayout
-        {
-            Children = { editButton, deleteButton },
-            HorizontalOptions = LayoutOptions.End,
-            Spacing = 5
-        };
-
-        var contentStack = new VerticalStackLayout
-        {
-            Children = { header, textLabel, dateLabel, buttonContainer },
-            Spacing = 5
-        };
+        string dateInfo = note.Type == "Напоминание" && note.ReminderDate.HasValue
+            ? $"🔔 {note.ReminderDate.Value:dd.MM.yyyy HH:mm}"
+            : note.CreatedAt.ToString("dd.MM.yyyy HH:mm");
 
         return new Frame
         {
@@ -207,52 +88,129 @@ public partial class MainPage : ContentPage
             BorderColor = Color.FromArgb("#CCCCCC"),
             Padding = 10,
             Margin = new Thickness(0, 0, 0, 5),
-            Content = contentStack,
-            HasShadow = false
+            Content = new VerticalStackLayout
+            {
+                Children =
+                {
+                    new HorizontalStackLayout
+                    {
+                        Children =
+                        {
+                            new Frame { BackgroundColor = Color.FromArgb(note.Type == "Заметка" ? "#4CAF50" : "#FF9800"), CornerRadius = 5, Padding = new Thickness(8,3), Content = new Label { Text = note.Type, TextColor = Colors.White, FontSize = 11 } },
+                            new Label { Text = note.Title, FontSize = 14, FontAttributes = FontAttributes.Bold, TextColor = Colors.Black }
+                        },
+                        Spacing = 10
+                    },
+                    new Label { Text = note.Text, FontSize = 12, TextColor = Color.FromArgb("#4A4A4A") },
+                    new Label { Text = dateInfo, FontSize = 10, TextColor = Color.FromArgb("#757575"), HorizontalOptions = LayoutOptions.End },
+                    new HorizontalStackLayout { Children = { editBtn, delBtn }, HorizontalOptions = LayoutOptions.End, Spacing = 5 }
+                },
+                Spacing = 5
+            }
         };
     }
 
-    private void EditNote(NoteItem note)
+    private void EditNote(NoteModel note)
     {
         TitleEntry.Text = note.Title;
         TextEditor.Text = note.Text;
-        allNotes.Remove(note);
-        displayedNotes = new List<NoteItem>(allNotes);
-        UpdateNotesDisplay();
+        OnTypeChanged(note.Type);
+        if (note.ReminderDate.HasValue)
+        {
+            ReminderDatePicker.Date = note.ReminderDate.Value.Date;
+            ReminderTimePicker.Time = note.ReminderDate.Value.TimeOfDay;
+        }
+        _editingNote = note;
     }
 
-    private void DeleteNote(NoteItem note)
+    private async Task DeleteNote(NoteModel note)
     {
-        allNotes.Remove(note);
-        displayedNotes = new List<NoteItem>(allNotes);
-        UpdateNotesDisplay();
+        if (!await DisplayAlert("Удаление", "Удалить заметку?", "Да", "Нет")) return;
+        try
+        {
+            await _api.DeleteNoteAsync(note.Id);
+            allNotes.Remove(note);
+            displayedNotes = new List<NoteModel>(allNotes);
+            UpdateNotesDisplay();
+            if (_editingNote?.Id == note.Id) ClearForm();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ошибка", ex.Message, "OK");
+        }
+    }
+
+    private async void OnSaveClicked(object sender, EventArgs e)
+    {
+        var title = TitleEntry.Text?.Trim();
+        var text = TextEditor.Text?.Trim();
+        var type = ReminderDatePicker.IsEnabled ? "Напоминание" : "Заметка";
+
+        if (string.IsNullOrEmpty(title) || string.IsNullOrEmpty(text))
+        {
+            await DisplayAlert("Ошибка", "Заполните все поля", "OK");
+            return;
+        }
+
+        DateTime? reminderDate = type == "Напоминание" ? ReminderDatePicker.Date + ReminderTimePicker.Time : null;
+
+        try
+        {
+            if (_editingNote != null)
+            {
+                var updated = await _api.UpdateNoteAsync(_editingNote.Id, title, text, type, reminderDate);
+                var idx = allNotes.FindIndex(n => n.Id == _editingNote.Id);
+                if (idx >= 0) allNotes[idx] = updated;
+                _editingNote = null;
+            }
+            else
+            {
+                var created = await _api.CreateNoteAsync(title, text, type, reminderDate);
+                allNotes.Insert(0, created);
+            }
+            displayedNotes = new List<NoteModel>(allNotes);
+            UpdateNotesDisplay();
+            ClearForm();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Ошибка", ex.Message, "OK");
+        }
+    }
+
+    private void OnCancelClicked(object sender, EventArgs e) => ClearForm();
+
+    private void ClearForm()
+    {
+        TitleEntry.Text = "";
+        TextEditor.Text = "";
+        _editingNote = null;
+        OnTypeChanged("Заметка");
+        ReminderDatePicker.Date = DateTime.Now;
+        ReminderTimePicker.Time = DateTime.Now.TimeOfDay;
+    }
+
+    private void OnNoteTypeClicked(object sender, EventArgs e)
+    {
+        if (sender is Button btn && btn.CommandParameter is string type)
+            OnTypeChanged(type);
     }
 
     private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
     {
-        string query = e.NewTextValue?.ToLower() ?? "";
-
-        if (string.IsNullOrEmpty(query))
-        {
-            displayedNotes = new List<NoteItem>(allNotes);
-        }
-        else
-        {
-            displayedNotes = allNotes
-                .Where(n => n.Title.ToLower().Contains(query) ||
-                           n.Text.ToLower().Contains(query) ||
-                           n.Type.ToLower().Contains(query))
-                .ToList();
-        }
-
+        var q = e.NewTextValue?.ToLower() ?? "";
+        displayedNotes = string.IsNullOrEmpty(q)
+            ? new List<NoteModel>(allNotes)
+            : allNotes.Where(n => n.Title.ToLower().Contains(q) || n.Text.ToLower().Contains(q)).ToList();
         UpdateNotesDisplay();
     }
-}
 
-public class NoteItem
-{
-    public string Title { get; set; } = string.Empty;
-    public string Text { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-    public DateTime Date { get; set; }
+    private async void Logout_Clicked(object sender, EventArgs e)
+    {
+        if (await DisplayAlert("Выход", "Выйти?", "Да", "Нет"))
+        {
+            await _api.LogoutAsync();
+            Application.Current.MainPage = new NavigationPage(new FirstPage());
+        }
+    }
 }
